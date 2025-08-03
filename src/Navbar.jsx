@@ -17,7 +17,7 @@ const Navbar = () => {
       <div className="mx-auto flex max-w-screen-xl flex-wrap items-center justify-between px-4 py-2">
         {/* Logo */}
         <a
-          href="/"
+          href="https://suhasmartha.github.io/" 
           className="flex items-center space-x-3 rtl:space-x-reverse"
         >
           <img src={mainlogo} className="h-6" alt="Logo" />
@@ -54,29 +54,29 @@ const Navbar = () => {
         >
           <ul className="mt-4 flex flex-col rounded-lg bg-2ndry-1/90 dark:bg-primary/90 p-4 font-medium md:mt-0 md:flex-row md:space-x-8 md:border-0 md:p-0 md:bg-transparent md:dark:bg-transparent rtl:space-x-reverse">
             <li>
-              <Link to="/" className="navilink">
+              <a href="https://suhasmartha.github.io/" className="navilink">
                 <span className="texthilit1">#</span>Home
-              </Link>
+              </a>
             </li>
             <li>
-              <Link to="/about" className="navilink">
+              <a href="https://suhasmartha.github.io/#/about" className="navilink">
                 <span className="texthilit1">#</span>About
-              </Link>
+              </a>
             </li>
             <li>
-              <Link to="/under-progress" className="navilink">
+              <a href="https://suhasmartha.github.io/#/projects" className="navilink">
                 <span className="texthilit1">#</span>Projects
-              </Link>
+              </a>
             </li>
             <li>
-              <Link to="/under-progress" className="navilink">
+              <a href="https://suhasmartha.github.io/blog" className="navilink">
                 <span className="texthilit1">#</span>Blog
-              </Link>
+              </a>
             </li>
             <li>
-              <Link to="/contact" className="navilink">
+              <a href="https://suhasmartha.github.io/#/contact" className="navilink">
                 <span className="texthilit1">#</span>Contact
-              </Link>
+              </a>
             </li>
           </ul>
         </div>

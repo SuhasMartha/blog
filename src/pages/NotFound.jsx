@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import Navbar from "../Navbar";
 import Footer from "../components/Footer";
-import MouseHover from "../components/MouseHover";
 
 const NotFound = () => {
   return (
