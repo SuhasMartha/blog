@@ -1,5 +1,5 @@
 import { Routes, Route } from "react-router-dom";
-import Blog from "./pages/blog";
+import Blog from "./pages/Blog";
 import NotFound from "./pages/NotFound";
 
 function App() {
