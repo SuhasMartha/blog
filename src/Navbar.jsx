@@ -59,12 +59,12 @@ const Navbar = () => {
               </a>
             </li>
             <li>
-              <a href="https://suhasmartha.github.io/#/about" className="navilink">
+              <a href="https://suhasmartha.github.io/about" className="navilink">
                 <span className="texthilit1">#</span>About
               </a>
             </li>
             <li>
-              <a href="https://suhasmartha.github.io/#/projects" className="navilink">
+              <a href="https://suhasmartha.github.io/projects" className="navilink">
                 <span className="texthilit1">#</span>Projects
               </a>
             </li>
@@ -74,7 +74,7 @@ const Navbar = () => {
               </a>
             </li>
             <li>
-              <a href="https://suhasmartha.github.io/#/contact" className="navilink">
+              <a href="https://suhasmartha.github.io/contact" className="navilink">
                 <span className="texthilit1">#</span>Contact
               </a>
             </li>
