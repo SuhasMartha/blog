@@ -1,6 +1,5 @@
 {
-  "homepage": "https://suhasmartha.github.io",
-  "name": "suhasmartha",
+  "name": "blog",
   "private": true,
   "version": "2.0.0",
   "type": "module",

@@ -4,5 +4,8 @@ import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
   plugins: [tailwindcss(), react()],
-  base: "/", // for GitHub Pages deployment
+  base: '/blog/', // for GitHub Pages deployment
+  optimizeDeps: {
+    exclude: ['lucide-react'],
+  },
 });

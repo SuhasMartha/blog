@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-
 import mainlogo from "./assets/mainlogo.svg";
 import burger from "./assets/burger.svg"; // Use any burger icon
 import LightBulb from "./components/LightBulb";
