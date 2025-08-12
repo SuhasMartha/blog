@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en" class="dark"> <!-- Start in dark mode by default -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Define custom color variables based on your portfolio CSS */
+        :root {
+            --font-fira: "Fira Code", monospace;
+            
+            /* Light Theme Colors */
+            --color-light-bg: #e5e7eb;
+            --color-light-text: #111111;
+            --color-light-border: #abb2bf;
+            --color-light-snake: #32cd32; /* Green */
+            --color-light-food: #be0eec; /* Violet */
+            --color-light-ui-bg: rgba(249, 250, 251, 0.8);
+            --color-light-grid: rgba(0, 0, 0, 0.1);
+
+            /* Dark Theme Colors */
+            --color-dark-bg: #111111;
+            --color-dark-text: #e5e7eb;
+            --color-dark-border: #282C33;
+            --color-dark-snake: #32cd32; /* Green */
+            --color-dark-food: #9d4edd; /* Violet */
+            --color-dark-ui-bg: rgba(29, 30, 33, 0.8);
+            --color-dark-grid: rgba(255, 255, 255, 0.15); /* Slightly more visible grid */
+        }
+
+        /* Apply theme colors using CSS variables */
+        html, body {
+            height: 100%;
+            overflow: hidden; /* Prevent scrollbars */
+        }
+        body {
+            font-family: var(--font-fira);
+            transition: background-color 0.3s ease, color 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* General UI panel styles */
+        .ui-panel, .start-screen, .difficulty-screen {
+             backdrop-filter: blur(5px);
+        }
+
+        /* Light mode styles */
+        body {
+            background-color: var(--color-light-bg);
+            color: var(--color-light-text);
+        }
+        .ui-panel, .start-screen, .difficulty-screen {
+             background-color: var(--color-light-ui-bg);
+        }
+        .game-canvas {
+            border-color: var(--color-light-border);
+        }
+
+        /* Dark mode styles */
+        .dark body {
+            background-color: var(--color-dark-bg);
+            color: var(--color-dark-text);
+        }
+        .dark .ui-panel, .dark .start-screen, .dark .difficulty-screen {
+            background-color: var(--color-dark-ui-bg);
+        }
+        .dark .game-canvas {
+            border-color: var(--color-dark-border);
+        }
+    </style>
+</head>
+<body class="p-4">
+
+    <!-- Start Screen -->
+    <div id="start-screen" class="start-screen absolute inset-0 z-30 flex flex-col items-center justify-center text-center p-8">
+        <h1 class="text-7xl md:text-9xl font-black text-green-500 animate-pulse">SNAKE</h1>
+        <div class="mt-8 p-6 rounded-lg">
+            <h2 class="text-2xl font-bold mb-4">Rules:</h2>
+            <ul class="list-none space-y-2 text-lg">
+                <li>Use <span class="font-bold text-green-400">Arrow Keys</span> to move the snake.</li>
+                <li>Eat the <span class="font-bold text-purple-400">violet blocks</span> to grow.</li>
+                <li>Don't run into the walls or your own tail!</li>
+            </ul>
+        </div>
+        <button id="enter-button" class="mt-12 px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg text-2xl shadow-lg transition-transform transform hover:scale-105 animate-bounce">
+            Click to Start
+        </button>
+    </div>
+    
+    <!-- Difficulty Screen -->
+    <div id="difficulty-screen" class="difficulty-screen hidden absolute inset-0 z-20 flex-col items-center justify-center text-center p-8">
+        <h2 class="text-5xl font-bold mb-10">Choose Difficulty</h2>
+        <div class="space-y-6">
+            <button data-difficulty="easy" class="difficulty-btn w-64 px-8 py-4 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg text-2xl shadow-lg transition-transform transform hover:scale-105">Easy</button>
+            <button data-difficulty="medium" class="difficulty-btn w-64 px-8 py-4 bg-yellow-500 hover:bg-yellow-600 text-white font-bold rounded-lg text-2xl shadow-lg transition-transform transform hover:scale-105">Medium</button>
+            <button data-difficulty="hard" class="difficulty-btn w-64 px-8 py-4 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg text-2xl shadow-lg transition-transform transform hover:scale-105">Hard</button>
+        </div>
+    </div>
+
+
+    <!-- Main Game Container -->
+    <div id="game-container" class="hidden w-full h-full flex flex-col items-center justify-center">
+        <!-- Header: Score -->
+        <div class="ui-panel absolute top-4 left-4 p-4 rounded-lg shadow-lg">
+            <p class="text-lg">Score: <span id="score" class="font-bold">0</span></p>
+        </div>
+
+        <!-- Game Canvas -->
+        <div class="relative" id="canvas-wrapper">
+            <canvas id="game-canvas" class="game-canvas rounded-lg border-4 shadow-2xl"></canvas>
+            <!-- Game Over Modal -->
+            <div id="game-over-modal" class="hidden absolute inset-0 bg-black bg-opacity-70 flex-col items-center justify-center rounded-lg">
+                <h2 id="game-over-text" class="text-4xl font-bold text-white mb-2">Game Over</h2>
+                <p class="text-white mb-4">Final Score: <span id="final-score">0</span></p>
+                <div class="flex flex-col sm:flex-row gap-4 mt-4">
+                    <button id="play-again-button" class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg text-xl shadow-lg transition-transform transform hover:scale-105">
+                        Play Again
+                    </button>
+                    <button id="change-difficulty-button" class="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg text-xl shadow-lg transition-transform transform hover:scale-105">
+                        Change Difficulty
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Theme Toggle Button -->
+    <button id="theme-toggle" class="fixed top-4 right-4 z-30 p-2 rounded-full text-2xl transition-transform transform hover:scale-110">
+        <span id="sun-icon">☀️</span>
+        <span id="moon-icon" class="hidden">🌙</span>
+    </button>
+
+    <!-- Back to Fun-Zone Button -->
+    <a href="https://suhasmartha.github.io/#/games" class="fixed bottom-4 right-4 z-30 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-lg transition-transform transform hover:scale-105">
+        Back to Fun-Zone
+    </a>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM Elements ---
+            const startScreen = document.getElementById('start-screen');
+            const enterButton = document.getElementById('enter-button');
+            const difficultyScreen = document.getElementById('difficulty-screen');
+            const gameContainer = document.getElementById('game-container');
+            const canvasWrapper = document.getElementById('canvas-wrapper');
+            const canvas = document.getElementById('game-canvas');
+            const ctx = canvas.getContext('2d');
+            const scoreEl = document.getElementById('score');
+            const finalScoreEl = document.getElementById('final-score');
+            const gameOverModal = document.getElementById('game-over-modal');
+            const playAgainButton = document.getElementById('play-again-button');
+            const changeDifficultyButton = document.getElementById('change-difficulty-button');
+            const themeToggle = document.getElementById('theme-toggle');
+            const sunIcon = document.getElementById('sun-icon');
+            const moonIcon = document.getElementById('moon-icon');
+            const difficultyButtons = document.querySelectorAll('.difficulty-btn');
+            const htmlEl = document.documentElement;
+
+            // --- Game Settings ---
+            let gridSize, gameSpeed, initialSnakeLength;
+            let canvasSize, tileSize;
+            let snake, food, score, direction, changingDirection, gameLoop;
+            let isGameOver = false;
+            let gameStarted = false;
+
+            const difficultySettings = {
+                easy:   { gridSize: 10, gameSpeed: 250, snakeLength: 3 },
+                medium: { gridSize: 20, gameSpeed: 100, snakeLength: 5 },
+                hard:   { gridSize: 30, gameSpeed: 60,  snakeLength: 7 }
+            };
+
+            // --- Color Management ---
+            const colors = {
+                light: { snake: '--color-light-snake', food: '--color-light-food', grid: '--color-light-grid' },
+                dark: { snake: '--color-dark-snake', food: '--color-dark-food', grid: '--color-dark-grid' }
+            };
+
+            const getCurrentColors = () => {
+                return htmlEl.classList.contains('dark') ? colors.dark : colors.light;
+            };
+            
+            // --- Game Initialization ---
+            function showDifficultyScreen() {
+                startScreen.classList.add('hidden');
+                difficultyScreen.classList.remove('hidden');
+                difficultyScreen.classList.add('flex');
+            }
+
+            function setDifficultyAndStart(difficulty) {
+                const settings = difficultySettings[difficulty];
+                gridSize = settings.gridSize;
+                gameSpeed = settings.gameSpeed;
+                initialSnakeLength = settings.snakeLength;
+
+                gameStarted = true;
+                difficultyScreen.classList.add('hidden');
+                difficultyScreen.classList.remove('flex');
+                gameContainer.classList.remove('hidden');
+                gameContainer.classList.add('flex');
+                
+                init();
+                handleResize(); 
+            }
+
+            function init() {
+                isGameOver = false;
+                changingDirection = false;
+                direction = { x: 1, y: 0 };
+                score = 0;
+                scoreEl.textContent = score;
+                
+                // Create snake based on difficulty
+                snake = [];
+                const startX = Math.floor(gridSize / 2);
+                const startY = Math.floor(gridSize / 2);
+                for (let i = 0; i < initialSnakeLength; i++) {
+                    snake.push({ x: startX - i, y: startY });
+                }
+
+                gameOverModal.classList.add('hidden');
+                gameOverModal.classList.remove('flex');
+                generateFood();
+                main();
+            }
+
+            // --- Main Game Loop ---
+            function main() {
+                if (isGameOver) {
+                    showGameOver();
+                    return;
+                }
+                if (gameLoop) clearTimeout(gameLoop);
+                gameLoop = setTimeout(() => {
+                    changingDirection = false;
+                    clearCanvas();
+                    drawGrid();
+                    drawFood();
+                    moveSnake();
+                    checkCollision();
+                    drawSnake();
+                    main();
+                }, gameSpeed); // Use variable game speed
+            }
+
+            // --- Drawing ---
+            function drawGrid() {
+                const currentColors = getCurrentColors();
+                ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue(currentColors.grid).trim();
+                ctx.lineWidth = 2; // Increased line width for a bigger grid appearance
+                for (let i = 1; i < gridSize; i++) {
+                    ctx.beginPath(); ctx.moveTo(i * tileSize, 0); ctx.lineTo(i * tileSize, canvas.height); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(0, i * tileSize); ctx.lineTo(canvas.width, i * tileSize); ctx.stroke();
+                }
+            }
+
+            function drawPart(part, color) {
+                ctx.fillStyle = color;
+                ctx.strokeStyle = htmlEl.classList.contains('dark') ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.7)';
+                ctx.lineWidth = 2;
+                ctx.fillRect(part.x * tileSize, part.y * tileSize, tileSize, tileSize);
+                ctx.strokeRect(part.x * tileSize, part.y * tileSize, tileSize, tileSize);
+            }
+
+            function drawSnake() {
+                const currentColors = getCurrentColors();
+                snake.forEach(part => drawPart(part, getComputedStyle(document.documentElement).getPropertyValue(currentColors.snake).trim()));
+            }
+
+            function drawFood() {
+                const currentColors = getCurrentColors();
+                drawPart(food, getComputedStyle(document.documentElement).getPropertyValue(currentColors.food).trim());
+            }
+
+            // --- Game Logic ---
+            function moveSnake() {
+                const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
+                snake.unshift(head);
+                if (head.x === food.x && head.y === food.y) {
+                    score += 10;
+                    scoreEl.textContent = score;
+                    generateFood();
+                } else {
+                    snake.pop();
+                }
+            }
+
+            function generateFood() {
+                food = {
+                    x: Math.floor(Math.random() * gridSize),
+                    y: Math.floor(Math.random() * gridSize)
+                };
+                if (snake) {
+                    snake.forEach(part => {
+                        if (part.x === food.x && part.y === food.y) generateFood();
+                    });
+                }
+            }
+
+            function checkCollision() {
+                const head = snake[0];
+                if (head.x < 0 || head.x >= gridSize || head.y < 0 || head.y >= gridSize) isGameOver = true;
+                for (let i = 1; i < snake.length; i++) { // Check from index 1 to avoid head checking itself
+                    if (head.x === snake[i].x && head.y === snake[i].y) isGameOver = true;
+                }
+            }
+            
+            function changeDirection(event) {
+                if (changingDirection) return;
+                changingDirection = true;
+                const keyPressed = event.key;
+                const goingUp = direction.y === -1, goingDown = direction.y === 1;
+                const goingRight = direction.x === 1, goingLeft = direction.x === -1;
+
+                if (keyPressed === "ArrowLeft" && !goingRight) direction = { x: -1, y: 0 };
+                else if (keyPressed === "ArrowUp" && !goingDown) direction = { x: 0, y: -1 };
+                else if (keyPressed === "ArrowRight" && !goingLeft) direction = { x: 1, y: 0 };
+                else if (keyPressed === "ArrowDown" && !goingUp) direction = { x: 0, y: 1 };
+            }
+
+            // --- UI and Canvas Management ---
+            function clearCanvas() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+
+            function showGameOver() {
+                finalScoreEl.textContent = score;
+                gameOverModal.classList.remove('hidden');
+                gameOverModal.classList.add('flex');
+            }
+            
+            function handleResize() {
+                const margin = 0.1; // 10% margin
+                const availableWidth = window.innerWidth * (1 - margin);
+                const availableHeight = window.innerHeight * (1 - margin);
+                canvasSize = Math.min(availableWidth, availableHeight);
+                canvasSize = Math.floor(canvasSize / gridSize) * gridSize;
+                canvas.width = canvasSize;
+                canvas.height = canvasSize;
+                canvasWrapper.style.width = `${canvasSize}px`;
+                canvasWrapper.style.height = `${canvasSize}px`;
+                tileSize = canvasSize / gridSize;
+                
+                if (gameStarted && !isGameOver && snake && food) {
+                    clearCanvas(); drawGrid(); drawFood(); drawSnake();
+                }
+            }
+            
+            function updateThemeIcons() {
+                if (htmlEl.classList.contains('dark')) {
+                    sunIcon.classList.add('hidden'); moonIcon.classList.remove('hidden');
+                } else {
+                    sunIcon.classList.remove('hidden'); moonIcon.classList.add('hidden');
+                }
+            }
+
+            // --- Event Listeners ---
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !gameStarted) {
+                    showDifficultyScreen();
+                } else if (gameStarted) {
+                    changeDirection(e);
+                }
+            });
+            
+            enterButton.addEventListener('click', () => {
+                 if (!gameStarted) {
+                    showDifficultyScreen();
+                }
+            });
+
+            difficultyButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    setDifficultyAndStart(button.dataset.difficulty);
+                });
+            });
+
+            playAgainButton.addEventListener('click', () => {
+                if (gameLoop) clearTimeout(gameLoop);
+                init();
+            });
+
+            changeDifficultyButton.addEventListener('click', () => {
+                gameStarted = false;
+                if (gameLoop) clearTimeout(gameLoop);
+                gameOverModal.classList.add('hidden');
+                gameContainer.classList.add('hidden');
+                showDifficultyScreen();
+            });
+
+            themeToggle.addEventListener('click', () => {
+                htmlEl.classList.toggle('dark');
+                updateThemeIcons();
+                if (gameStarted && !isGameOver && snake && food) {
+                    clearCanvas(); drawGrid(); drawFood(); drawSnake();
+                }
+            });
+            
+            window.addEventListener('resize', handleResize);
+
+            // --- Initial Setup ---
+            updateThemeIcons(); // Set initial icon
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe Game</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Your portfolio theme variables */
+        :root {
+            --font-fira: "Fira Code", monospace;
+            
+            /* Light Mode Colors */
+            --bg-light: #e5e7eb; /* --color-2ndry-1 */
+            --text-light: #111111; /* --color-primary */
+            --board-bg-light: #f9fafb;
+            --cell-bg-light: #ffffff;
+            --cell-hover-light: #f3f4f6;
+            --highlight-light: #9e3dc1; /* --color-lhilit-2 */
+            --x-color-light: #be0eec; /* --color-lhilit-1 */
+            --o-color-light: #7b2cbf; /* --color-dhilit-2 */
+            --border-light: #abb2bf; /* --color-2ndry-2 */
+
+            /* Dark Mode Colors */
+            --bg-dark: #111111; /* --color-primary */
+            --text-dark: #e5e7eb; /* --color-2ndry-1 */
+            --board-bg-dark: #161318; /* --color-primary-2 */
+            --cell-bg-dark: #1d1e21; /* --color-primary-4 */
+            --cell-hover-dark: #282C33; /* --color-primary-3 */
+            --highlight-dark: #9d4edd; /* --color-dhilit-1 */
+            --x-color-dark: #be0eec; /* --color-lhilit-1 */
+            --o-color-dark: #9d4edd; /* --color-dhilit-1 */
+            --border-dark: #282C33; /* --color-primary-3 */
+        }
+
+        /* Applying themes */
+        body {
+            font-family: var(--font-fira);
+            background-color: var(--bg-light);
+            color: var(--text-light);
+            transition: background-color 0.3s, color 0.3s;
+            overflow: hidden; /* Prevent scrolling */
+        }
+
+        .dark body {
+            background-color: var(--bg-dark);
+            color: var(--text-dark);
+        }
+
+        .game-board {
+            background-color: var(--board-bg-light);
+            border-color: var(--border-light);
+        }
+        .dark .game-board {
+            background-color: var(--board-bg-dark);
+            border-color: var(--border-dark);
+        }
+
+        .cell {
+            background-color: var(--cell-bg-light);
+            border-color: var(--border-light);
+            transition: background-color 0.2s;
+        }
+        .dark .cell {
+            background-color: var(--cell-bg-dark);
+            border-color: var(--border-dark);
+        }
+
+        .cell:not(.x):not(.o):hover {
+            background-color: var(--cell-hover-light);
+        }
+        .dark .cell:not(.x):not(.o):hover {
+            background-color: var(--cell-hover-dark);
+        }
+
+        .cell.x { color: var(--x-color-light); }
+        .dark .cell.x { color: var(--x-color-dark); }
+
+        .cell.o { color: var(--o-color-light); }
+        .dark .cell.o { color: var(--o-color-dark); }
+        
+        .cell.win {
+            background-color: var(--highlight-light) !important;
+            color: white !important;
+        }
+        .dark .cell.win {
+            background-color: var(--highlight-dark) !important;
+        }
+
+        .btn-primary {
+            background-color: var(--highlight-light);
+            color: white;
+            transition: background-color 0.3s;
+        }
+        .dark .btn-primary {
+            background-color: var(--highlight-dark);
+        }
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+        
+        .btn-secondary {
+            background-color: var(--cell-bg-light);
+            color: var(--text-light);
+            border: 1px solid var(--border-light);
+        }
+        .dark .btn-secondary {
+            background-color: var(--cell-bg-dark);
+            color: var(--text-dark);
+            border-color: var(--border-dark);
+        }
+
+        /* Modal for Analysis */
+        .modal { background-color: rgba(0,0,0,0.5); }
+        .modal-content { background-color: var(--board-bg-light); }
+        .dark .modal-content { background-color: var(--board-bg-dark); }
+        
+        /* Rules Heading Color Fix */
+        .rules-heading {
+             color: var(--o-color-light);
+        }
+        .dark .rules-heading {
+            color: var(--highlight-dark);
+        }
+        
+        /* Rules Text Color Fix */
+        .rules-text {
+            color: var(--text-light);
+        }
+        .dark .rules-text {
+            color: var(--text-dark);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Theme Toggle (Fixed Position) -->
+    <button id="theme-toggle" class="fixed top-4 right-4 z-30 p-2 text-2xl transition-transform transform hover:scale-110">
+        <span id="sun-icon">☀️</span>
+        <span id="moon-icon" class="hidden">🌙</span>
+    </button>
+    
+    <!-- Back to Games Button (Fixed Position) -->
+    <a href="https://suhasmartha.github.io/#/games" class="fixed bottom-4 right-4 z-30 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg shadow-lg transition-transform transform hover:scale-105">
+        Back to Fun-Zone
+    </a>
+
+
+    <!-- Welcome Screen -->
+    <div id="welcome-screen" class="min-h-screen w-full flex flex-col items-center justify-center p-4 text-center">
+        <h1 class="text-6xl md:text-8xl font-bold mb-6">Tic-Tac-Toe</h1>
+        <div class="max-w-md mb-8">
+            <h2 class="rules-heading text-2xl font-bold mb-2">Rules</h2>
+            <p class="rules-text">The game is played on a 3x3 grid. Player X goes first. Players take turns putting their marks in empty squares. The first player to get 3 of their marks in a row (up, down, across, or diagonally) is the winner. If all 9 squares are full and no player has 3 in a row, the game is a draw.</p>
+        </div>
+        <button id="enter-game-btn" class="btn-primary text-2xl font-semibold py-3 px-12 rounded-lg shadow-lg">Enter</button>
+    </div>
+
+    <!-- Game Screen (Initially Hidden) -->
+    <div id="game-screen" class="hidden min-h-screen w-full flex flex-col items-center justify-center p-4">
+        <div id="game-container" class="text-center">
+            <h1 class="text-4xl md:text-5xl font-bold mb-2">Tic-Tac-Toe</h1>
+            <p id="status" class="text-lg md:text-xl h-8 mb-4"></p>
+
+            <!-- Game Mode Selection -->
+            <div id="mode-selection" class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-6">
+                <button id="singlePlayerBtn" class="btn-primary w-full sm:w-48 text-lg font-semibold py-3 px-6 rounded-lg shadow-md">Single Player</button>
+                <button id="doublePlayerBtn" class="btn-primary w-full sm:w-48 text-lg font-semibold py-3 px-6 rounded-lg shadow-md">Two Player</button>
+            </div>
+
+            <!-- Game Board -->
+            <div id="game-board" class="game-board hidden grid grid-cols-3 gap-2 p-3 rounded-lg shadow-lg border-2 w-72 h-72 md:w-96 md:h-96 mx-auto">
+                <!-- Cells will be generated by JS -->
+            </div>
+            
+            <!-- AI Trash Talk Display -->
+            <div id="trash-talk-container" class="hidden mt-4 h-12 flex items-center justify-center">
+                <p id="trash-talk" class="text-sm italic"></p>
+            </div>
+
+            <!-- Action Buttons -->
+            <div id="action-buttons" class="mt-6 space-x-4">
+                 <button id="restart-btn" class="btn-secondary hidden text-lg font-semibold py-2 px-8 rounded-lg shadow-md">Restart</button>
+                 <button id="analyze-btn" class="btn-primary hidden text-lg font-semibold py-2 px-8 rounded-lg shadow-md">Analyze Game ✨</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Analysis Modal -->
+    <div id="analysis-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div class="modal-content w-full max-w-md p-6 rounded-lg shadow-xl">
+            <h3 class="text-2xl font-bold mb-4">Game Analysis ✨</h3>
+            <div id="analysis-result" class="text-left whitespace-pre-wrap"></div>
+            <button id="close-modal-btn" class="btn-secondary mt-6 w-full py-2 rounded-lg">Close</button>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM Elements ---
+            const themeToggle = document.getElementById('theme-toggle');
+            const sunIcon = document.getElementById('sun-icon');
+            const moonIcon = document.getElementById('moon-icon');
+            const welcomeScreen = document.getElementById('welcome-screen');
+            const gameScreen = document.getElementById('game-screen');
+            const enterGameBtn = document.getElementById('enter-game-btn');
+            const statusDisplay = document.getElementById('status');
+            const gameBoard = document.getElementById('game-board');
+            const restartBtn = document.getElementById('restart-btn');
+            const analyzeBtn = document.getElementById('analyze-btn');
+            const modeSelection = document.getElementById('mode-selection');
+            const singlePlayerBtn = document.getElementById('singlePlayerBtn');
+            const doublePlayerBtn = document.getElementById('doublePlayerBtn');
+            const trashTalkContainer = document.getElementById('trash-talk-container');
+            const trashTalkDisplay = document.getElementById('trash-talk');
+            const analysisModal = document.getElementById('analysis-modal');
+            const analysisResult = document.getElementById('analysis-result');
+            const closeModalBtn = document.getElementById('close-modal-btn');
+            const cells = [];
+
+            // --- Game State ---
+            let boardState = ['', '', '', '', '', '', '', '', ''];
+            let moveHistory = [];
+            let currentPlayer = 'X';
+            let isGameActive = false;
+            let gameMode = ''; // 'single' or 'double'
+            const humanPlayer = 'X';
+            const aiPlayer = 'O';
+
+            const winningConditions = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8], // Rows
+                [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columns
+                [0, 4, 8], [2, 4, 6]             // Diagonals
+            ];
+
+            // --- Theme Management ---
+            const applyTheme = (isDark) => {
+                document.documentElement.classList.toggle('dark', isDark);
+                sunIcon.classList.toggle('hidden', isDark);
+                moonIcon.classList.toggle('hidden', !isDark);
+            };
+            
+            themeToggle.addEventListener('click', () => {
+                const isCurrentlyDark = document.documentElement.classList.contains('dark');
+                const newIsDark = !isCurrentlyDark;
+                applyTheme(newIsDark);
+                localStorage.setItem('tictactoe-theme', newIsDark ? 'dark' : 'light');
+            });
+
+            // Load saved theme on startup
+            const savedTheme = localStorage.getItem('tictactoe-theme');
+            applyTheme(savedTheme === 'dark');
+
+
+            // --- Screen Navigation ---
+            const showGameScreen = () => {
+                welcomeScreen.classList.add('hidden');
+                gameScreen.classList.remove('hidden');
+            };
+
+            // --- Game Logic ---
+            const startGame = (mode) => {
+                gameMode = mode;
+                isGameActive = true;
+                currentPlayer = 'X';
+                boardState.fill('');
+                moveHistory = [];
+                
+                modeSelection.classList.add('hidden');
+                gameBoard.classList.remove('hidden');
+                restartBtn.classList.remove('hidden');
+                analyzeBtn.classList.add('hidden');
+                trashTalkContainer.classList.add('hidden');
+                trashTalkDisplay.textContent = '';
+
+                statusDisplay.textContent = `Player ${currentPlayer}'s Turn`;
+                
+                gameBoard.innerHTML = '';
+                cells.length = 0;
+                for (let i = 0; i < 9; i++) {
+                    const cell = document.createElement('div');
+                    cell.classList.add('cell', 'flex', 'items-center', 'justify-center', 'text-5xl', 'md:text-7xl', 'font-bold', 'cursor-pointer', 'rounded-md', 'border-2');
+                    cell.dataset.index = i;
+                    
+                    const cellContent = document.createElement('span');
+                    cellContent.innerHTML = '&nbsp;';
+                    cell.appendChild(cellContent);
+
+                    cell.addEventListener('click', handleCellClick);
+                    gameBoard.appendChild(cell);
+                    cells.push(cell);
+                }
+            };
+
+            const handleCellClick = (e) => {
+                const clickedCell = e.currentTarget;
+                const clickedCellIndex = parseInt(clickedCell.dataset.index);
+
+                if (boardState[clickedCellIndex] !== '' || !isGameActive) return;
+                
+                if (currentPlayer === humanPlayer || gameMode === 'double') {
+                    makeMove(clickedCellIndex, currentPlayer);
+                }
+
+                if (isGameActive && gameMode === 'single' && currentPlayer === aiPlayer) {
+                    statusDisplay.textContent = `Player O is thinking...`;
+                    trashTalkDisplay.textContent = '';
+                    setTimeout(aiMove, 500);
+                }
+            };
+            
+            const makeMove = (index, player) => {
+                if (boardState[index] !== '' || !isGameActive) return;
+
+                boardState[index] = player;
+                moveHistory.push({ player, index });
+                
+                cells[index].querySelector('span').textContent = player;
+                cells[index].classList.add(player.toLowerCase());
+
+                if (checkResult()) return;
+
+                switchPlayer();
+            };
+
+            const switchPlayer = () => {
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                statusDisplay.textContent = `Player ${currentPlayer}'s Turn`;
+            };
+
+            const handleGameOver = (message, winningCombo = []) => {
+                statusDisplay.textContent = message;
+                isGameActive = false;
+                analyzeBtn.classList.remove('hidden');
+                winningCombo.forEach(index => cells[index].classList.add('win'));
+            };
+
+            const checkResult = () => {
+                let roundWon = false;
+                let winningCombo = [];
+
+                for (const winCondition of winningConditions) {
+                    const [a, b, c] = winCondition;
+                    if (boardState[a] && boardState[a] === boardState[b] && boardState[a] === boardState[c]) {
+                        roundWon = true;
+                        winningCombo = winCondition;
+                        break;
+                    }
+                }
+
+                if (roundWon) {
+                    handleGameOver(`Player ${currentPlayer} Wins!`, winningCombo);
+                    return true;
+                }
+
+                if (!boardState.includes('')) {
+                    handleGameOver(`It's a Draw!`);
+                    return true;
+                }
+                
+                return false;
+            };
+
+            const resetGame = () => {
+                modeSelection.classList.remove('hidden');
+                gameBoard.classList.add('hidden');
+                restartBtn.classList.add('hidden');
+                analyzeBtn.classList.add('hidden');
+                trashTalkContainer.classList.add('hidden');
+                statusDisplay.textContent = '';
+            };
+
+            // --- AI Logic (Minimax) ---
+            const aiMove = () => {
+                if (!isGameActive) return;
+                const bestMoveIndex = findBestMove(boardState);
+                makeMove(bestMoveIndex, aiPlayer);
+                if(isGameActive) {
+                    getAiTrashTalk();
+                }
+            };
+            
+            const scores = { [aiPlayer]: 10, [humanPlayer]: -10, 'tie': 0 };
+
+            const findBestMove = (board) => {
+                let bestScore = -Infinity;
+                let move;
+                for (let i = 0; i < 9; i++) {
+                    if (board[i] === '') {
+                        board[i] = aiPlayer;
+                        let score = minimax(board, 0, false);
+                        board[i] = '';
+                        if (score > bestScore) {
+                            bestScore = score;
+                            move = i;
+                        }
+                    }
+                }
+                return move;
+            };
+
+            const minimax = (board, depth, isMaximizing) => {
+                let result = checkWinner(board);
+                if (result !== null) return scores[result] - (isMaximizing ? depth : -depth);
+
+                if (isMaximizing) {
+                    let bestScore = -Infinity;
+                    for (let i = 0; i < 9; i++) {
+                        if (board[i] === '') {
+                            board[i] = aiPlayer;
+                            bestScore = Math.max(bestScore, minimax(board, depth + 1, false));
+                            board[i] = '';
+                        }
+                    }
+                    return bestScore;
+                } else {
+                    let bestScore = Infinity;
+                    for (let i = 0; i < 9; i++) {
+                        if (board[i] === '') {
+                            board[i] = humanPlayer;
+                            bestScore = Math.min(bestScore, minimax(board, depth + 1, true));
+                            board[i] = '';
+                        }
+                    }
+                    return bestScore;
+                }
+            };
+            
+            const checkWinner = (board) => {
+                for (const condition of winningConditions) {
+                    const [a, b, c] = condition;
+                    if (board[a] && board[a] === board[b] && board[a] === board[c]) return board[a];
+                }
+                if (!board.includes('')) return 'tie';
+                return null;
+            };
+
+            // --- Gemini API Integrations ---
+            const callGemini = async (prompt) => {
+                const apiKey = ""; // Leave empty, handled by environment
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                
+                const payload = {
+                    contents: [{ role: "user", parts: [{ text: prompt }] }]
+                };
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`API call failed with status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    return result.candidates[0].content.parts[0].text;
+                } catch (error) {
+                    console.error("Gemini API Error:", error);
+                    return "My circuits are buzzing... can't think of anything clever right now.";
+                }
+            };
+
+            const getAiTrashTalk = async () => {
+                trashTalkContainer.classList.remove('hidden');
+                trashTalkDisplay.textContent = 'AI is thinking of a taunt...';
+                const prompt = "You are a witty and slightly arrogant Tic-Tac-Toe AI that never loses. The human player (X) just made a move. Give me a short, clever, one-line taunt about their move or your impending victory. Keep it family-friendly and under 15 words.";
+                const taunt = await callGemini(prompt);
+                trashTalkDisplay.textContent = `🤖: "${taunt}"`;
+            };
+            
+            const handleAnalysis = async () => {
+                analysisResult.textContent = 'Analyzing the game...';
+                analysisModal.classList.remove('hidden');
+                
+                const formattedHistory = moveHistory.map((move, i) => 
+                    `Turn ${i+1}: Player ${move.player} places on square ${move.index}.`
+                ).join('\n');
+                
+                const prompt = `You are a Tic-Tac-Toe expert. Analyze the following game and provide a brief, insightful summary for a beginner. Point out the winning move or the critical mistake. The game ended with the status: "${statusDisplay.textContent}".\n\nGame History:\n${formattedHistory}`;
+                
+                const analysis = await callGemini(prompt);
+                analysisResult.textContent = analysis;
+            };
+
+
+            // --- Event Listeners ---
+            enterGameBtn.addEventListener('click', showGameScreen);
+            singlePlayerBtn.addEventListener('click', () => startGame('single'));
+            doublePlayerBtn.addEventListener('click', () => startGame('double'));
+            restartBtn.addEventListener('click', resetGame);
+            analyzeBtn.addEventListener('click', handleAnalysis);
+            closeModalBtn.addEventListener('click', () => analysisModal.classList.add('hidden'));
+
+        });
+    </script>
+</body>
+</html>
